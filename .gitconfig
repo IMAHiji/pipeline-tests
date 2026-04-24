@@ -10,6 +10,9 @@
     # Automatically setup the remote upstream branch when pushing for the first time
     autoSetupRemote = true
 
+[rebase]
+    autosquash = true
+
 [alias]
     # Common shorthand aliases
     st = status
