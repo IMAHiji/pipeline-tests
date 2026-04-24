@@ -25,6 +25,6 @@ dist-ssr/
 *.sw?
 
 # Testing
-coverage/
+coverage/*
 
 !coverage/badge.svg
