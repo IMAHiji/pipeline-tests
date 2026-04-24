@@ -1,0 +1,21 @@
+[core]
+    # Set the default editor (e.g. vim, code --wait, nano)
+    editor = agy
+
+[pull]
+    # Default to fast-forward only when pulling to prevent messy merge commits
+    ff = only
+
+[push]
+    # Automatically setup the remote upstream branch when pushing for the first time
+    autoSetupRemote = true
+
+[alias]
+    # Common shorthand aliases
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    
+    # A beautiful, easy to read git log graph
+    lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
