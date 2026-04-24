@@ -1,0 +1,98 @@
+name: Build, Accessibility Report & Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-report:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build HTML
+        run: npm run build
+        # Adjust this command to match your build script
+
+      - name: Run accessibility audit
+        run: |
+          npm install -g @axe-core/cli
+          axe --output json --tags wcag2aa,best-practice ./dist > accessibility-report.json || true
+        # Adjust the path (./dist) to where your built HTML is located
+
+      - name: Generate HTML accessibility report
+        run: |
+          npm install -g @axe-core/cli
+          axe --output html ./dist > accessibility-report.html || true
+
+      - name: Create report index
+        run: |
+          mkdir -p report
+          cat > report/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Accessibility Report</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+                  .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  h1 { color: #333; border-bottom: 3px solid #0366d6; padding-bottom: 10px; }
+                  .report-link { display: inline-block; margin: 10px 0; padding: 10px 20px; background: #0366d6; color: white; text-decoration: none; border-radius: 4px; }
+                  .report-link:hover { background: #0256b8; }
+                  .timestamp { color: #666; font-size: 0.9em; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>📊 Accessibility Report</h1>
+                  <p class="timestamp">Generated: $(date)</p>
+                  <p>This report contains accessibility audit results for your project.</p>
+                  <a href="./accessibility-report.html" class="report-link">📋 View Full Report</a>
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Copy built files to report
+        run: |
+          cp accessibility-report.html report/ || true
+          cp accessibility-report.json report/ || true
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'report'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
